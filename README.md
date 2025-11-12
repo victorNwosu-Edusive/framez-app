@@ -1,21 +1,25 @@
 # Framez - Mobile Social App
 
-A React Native social media app built with Expo, allowing users to share posts with text and images.
+A React Native social media app built with Expo, allowing users to share posts with text and images, like posts, and comment on them.
 
 ## Features
 
-- **User Authentication**: Sign up, login, and logout with Firebase Auth
+- **User Authentication**: Sign up, login, and logout with Supabase Auth
 - **Persistent Sessions**: Stay logged in after app restart
 - **Create Posts**: Share text and images
 - **Feed**: View all posts in chronological order
+- **Like Posts**: Like and unlike posts
+- **Comments**: Add comments to posts
+- **Notifications**: Receive notifications for likes and comments
 - **Profile**: View your own posts and user information
 
 ## Tech Stack
 
 - **Framework**: React Native with Expo
-- **Backend**: Firebase (Authentication, Firestore, Storage)
+- **Backend**: Supabase (Authentication, Database, Storage)
 - **Navigation**: React Navigation
 - **State Management**: React Context API
+- **UI Components**: React Native Elements
 
 ## Setup Instructions
 
@@ -23,7 +27,7 @@ A React Native social media app built with Expo, allowing users to share posts w
 
 - Node.js (v14 or later)
 - Expo CLI: `npm install -g @expo/cli`
-- Firebase account and project
+- Supabase account and project
 
 ### Installation
 
@@ -38,23 +42,77 @@ A React Native social media app built with Expo, allowing users to share posts w
    npm install
    ```
 
-3. Set up Firebase:
-   - Create a new Firebase project at https://console.firebase.google.com/
-   - Enable Authentication (Email/Password)
-   - Enable Firestore Database
-   - Enable Storage
-   - Get your Firebase config from Project Settings
+3. Set up Supabase:
+   - Create a new Supabase project at https://supabase.com/
+   - Go to Settings > API to get your project URL and anon key
+   - Create the following tables in your Supabase database:
 
-4. Update Firebase config:
-   - Open `config/firebase.js`
-   - Replace the placeholder values with your Firebase config
+   **posts table:**
+   ```sql
+   CREATE TABLE posts (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     content TEXT,
+     image_url TEXT,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ```
 
-5. Start the development server:
+   **likes table:**
+   ```sql
+   CREATE TABLE likes (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+     UNIQUE(user_id, post_id)
+   );
+   ```
+
+   **comments table:**
+   ```sql
+   CREATE TABLE comments (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+     content TEXT NOT NULL,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ```
+
+   **notifications table:**
+   ```sql
+   CREATE TABLE notifications (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     type TEXT NOT NULL,
+     message TEXT NOT NULL,
+     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+     from_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     read BOOLEAN DEFAULT FALSE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ```
+
+4. Set up environment variables:
+   - Create a `.env` file in the root directory
+   - Add your Supabase credentials:
+   ```
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+5. Update Supabase config:
+   - The config is already set up in `config/supabase.js` to use environment variables
+
+6. Start the development server:
    ```bash
    npx expo start
    ```
 
-6. Run on device/simulator:
+7. Run on device/simulator:
    - Install Expo Go app on your device
    - Scan the QR code from the terminal
    - Or press 'a' for Android emulator, 'i' for iOS simulator
@@ -63,22 +121,28 @@ A React Native social media app built with Expo, allowing users to share posts w
 
 ```
 framez-app/
-├── assets/                 # App assets (icons, splash screens)
+├── assets/                 # App assets (icons, splash screens, images)
 ├── components/             # Reusable components
+│   ├── CommentItem.js      # Comment display component
 │   └── PostItem.js         # Post display component
 ├── config/                 # Configuration files
-│   └── firebase.js         # Firebase configuration
+│   └── supabase.js         # Supabase configuration
 ├── contexts/               # React contexts
-│   └── AuthContext.js      # Authentication context
+│   ├── AuthContext.js      # Authentication context
+│   ├── NotificationsContext.js # Notifications context
+│   └── ThemeContext.js     # Theme context
 ├── screens/                # App screens
 │   ├── LoginScreen.js      # Login screen
 │   ├── SignupScreen.js     # Signup screen
 │   ├── FeedScreen.js       # Main feed
 │   ├── ProfileScreen.js    # User profile
-│   └── CreatePostScreen.js # Create new post
+│   ├── CreatePostScreen.js # Create new post
+│   ├── PostDetailScreen.js # Post details with comments
+│   └── NotificationsScreen.js # Notifications screen
 ├── App.js                  # Main app component
 ├── app.json                # Expo configuration
 ├── package.json            # Dependencies
+├── .env                    # Environment variables (create this)
 └── README.md               # This file
 ```
 
@@ -86,9 +150,12 @@ framez-app/
 
 1. **Sign Up**: Create a new account with email and password
 2. **Login**: Sign in with your credentials
-3. **View Feed**: See all posts from all users
+3. **View Feed**: See all posts from all users, like posts, and tap to view comments
 4. **Create Post**: Tap the + button to create a new post with text and/or image
-5. **View Profile**: Switch to Profile tab to see your posts and logout
+5. **Like Posts**: Tap the heart icon to like/unlike posts
+6. **Comments**: Tap on a post to view details and add comments
+7. **Notifications**: Check the notifications tab for likes and comments on your posts
+8. **View Profile**: Switch to Profile tab to see your posts and logout
 
 ## Deployment
 

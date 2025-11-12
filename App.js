@@ -8,7 +8,8 @@ import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/in
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet, Text } from 'react-native';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { NotificationsProvider } from './contexts/NotificationsContext';
+import { NotificationsProvider, useNotifications } from './contexts/NotificationsContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { supabase } from './config/supabase';
 import LoginScreen from './screens/LoginScreen';
@@ -68,6 +69,8 @@ function TabNavigator({ navigation }) {
     </Tab.Navigator>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   plusIconContainer: {
@@ -134,12 +137,14 @@ export default function App() {
   }
 
   return (
-    <AuthProvider>
-      <NotificationsProvider>
-        <ActionSheetProvider>
-          <AppNavigator />
-        </ActionSheetProvider>
-      </NotificationsProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <NotificationsProvider>
+          <ActionSheetProvider>
+            <AppNavigator />
+          </ActionSheetProvider>
+        </NotificationsProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

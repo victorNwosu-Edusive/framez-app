@@ -65,6 +65,7 @@ export default function PostDetailScreen({ route, navigation }) {
           post_id: post.id,
           user_id: currentUser.uid,
           author_name: currentUser.username || 'Anonymous',
+          user_avatar: currentUser.avatar_url || null,
           content: newComment.trim(),
         })
         .select()

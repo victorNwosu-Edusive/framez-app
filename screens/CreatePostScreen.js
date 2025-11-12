@@ -74,6 +74,7 @@ export default function CreatePostScreen({ navigation }) {
             image_url: imageUrl,
             author_id: currentUser.uid,
             author_name: currentUser.username || currentUser.email,
+            author_avatar: currentUser.avatar_url || null,
             created_at: new Date().toISOString(),
           },
         ]);
